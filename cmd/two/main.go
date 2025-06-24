@@ -32,7 +32,12 @@ func main() {
 	var results []search.Offer
 
 	for _, p := range providers {
-		results = append(results, p.Search(ctx)...)
+		providerResults, err := p.Search(ctx)
+		if err != nil {
+			panic(err)
+		}
+
+		results = append(results, providerResults...)
 	}
 
 	fmt.Println(results)

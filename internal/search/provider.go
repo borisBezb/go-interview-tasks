@@ -7,7 +7,7 @@ import (
 )
 
 type Provider interface {
-	Search(ctx context.Context) []Offer
+	Search(ctx context.Context) ([]Offer, error)
 }
 
 func NewProvider(name string) Provider {
@@ -20,13 +20,19 @@ type provider struct {
 	name string
 }
 
-func (p provider) Search(ctx context.Context) []Offer {
-	time.Sleep(time.Second * time.Duration(rand.Intn(10)))
+func (p provider) Search(ctx context.Context) ([]Offer, error) {
+	timer := time.NewTimer(time.Duration(rand.Intn(10)) * time.Second)
+	defer timer.Stop()
 
-	return []Offer{
-		{
-			Provider: p.name,
-			Price:    int64(rand.Intn(10000)),
-		},
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-timer.C:
+		return []Offer{
+			{
+				Provider: p.name,
+				Price:    int64(rand.Intn(10000)),
+			},
+		}, nil
 	}
 }
